@@ -5,21 +5,38 @@ import (
 	"financial_assistant/internal/config"
 	"financial_assistant/internal/infra/rest"
 	"fmt"
+	"log"
 	"log/slog"
 )
 
 type App struct {
-	rest   rest.Server
-	logger slog.Logger
+	rest     *rest.Server
+	repo     *Repo
+	usecases *Usecases
+	logger   slog.Logger
 }
 
-func New(ctx context.Context, conf *config.Config) *App {
+func New(ctx context.Context, conf *config.Config, creds *config.Credentials) *App {
+	repo, err := NewRepo(ctx, creds)
+	if err != nil {
+		log.Fatalf("error connecting to postgres: %v", err)
+	}
+
+	usecases, err := NewUsecases(ctx, repo)
+	if err != nil {
+		log.Fatalf("error connecting to postgres: %v", err)
+	}
+
 	server := rest.NewServer(&rest.ServerDeps{
-		Config: conf,
+		Config:   conf,
+		Usecases: usecases.User,
 	})
 
 	return &App{
-		rest: *server,
+		rest:     server,
+		repo:     repo,
+		usecases: usecases,
+		logger:   slog.Logger{},
 	}
 }
 
