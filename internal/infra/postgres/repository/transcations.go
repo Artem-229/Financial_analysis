@@ -1,0 +1,113 @@
+package repository
+
+import (
+	"context"
+	"errors"
+	"financial_assistant/internal/entities"
+	"fmt"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+var ErrTransactionNotFound = errors.New("transaction not found")
+
+type TransactionsRepo struct {
+	pool *pgxpool.Pool
+}
+
+func NewTransactionsRepo(pool *pgxpool.Pool) *TransactionsRepo {
+	return &TransactionsRepo{
+		pool: pool,
+	}
+}
+
+func (r TransactionsRepo) Upsert(ctx context.Context, transaction *entities.Transaction) error {
+	query := `
+		INSERT INTO transactions (id, user_id, item, price, class)
+		VALUES ($1, $2, $3, $4, $5)
+		ON CONFLICT (id) DO UPDATE SET
+			item = EXCLUDED.item,
+			price = EXCLUDED.price,
+			class = EXCLUDED.class
+		WHERE transactions.user_id = EXCLUDED.user_id
+	`
+
+	res, err := r.pool.Exec(ctx, query, transaction.ID, transaction.UserID, transaction.Item, transaction.Price, transaction.Class)
+	if err != nil {
+		return fmt.Errorf("error upserting transaction: %w", err)
+	}
+
+	if res.RowsAffected() == 0 {
+		return ErrTransactionNotFound
+	}
+
+	return nil
+}
+
+func (r TransactionsRepo) GetByID(ctx context.Context, id string, userID string) (*entities.Transaction, error) {
+	query := `SELECT id, user_id, item, price, class FROM transactions WHERE id = $1 AND user_id = $2`
+
+	var transaction entities.Transaction
+	err := r.pool.QueryRow(ctx, query, id, userID).Scan(
+		&transaction.ID,
+		&transaction.UserID,
+		&transaction.Item,
+		&transaction.Price,
+		&transaction.Class,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrTransactionNotFound
+		}
+		return nil, fmt.Errorf("error getting transaction: %w", err)
+	}
+
+	return &transaction, nil
+}
+
+func (r TransactionsRepo) List(ctx context.Context, userID string) ([]entities.Transaction, error) {
+	query := `SELECT id, user_id, item, price, class FROM transactions WHERE user_id = $1`
+
+	rows, err := r.pool.Query(ctx, query, userID)
+	if err != nil {
+		return nil, fmt.Errorf("error listing transactions: %w", err)
+	}
+	defer rows.Close()
+
+	var transactions []entities.Transaction
+	for rows.Next() {
+		var transaction entities.Transaction
+		if err := rows.Scan(
+			&transaction.ID,
+			&transaction.UserID,
+			&transaction.Item,
+			&transaction.Price,
+			&transaction.Class,
+		); err != nil {
+			return nil, fmt.Errorf("error scanning transaction: %w", err)
+		}
+		transactions = append(transactions, transaction)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating transactions: %w", err)
+	}
+
+	return transactions, nil
+}
+
+func (r TransactionsRepo) Delete(ctx context.Context, id string, userID string) error {
+	query := `DELETE FROM transactions WHERE id = $1 AND user_id = $2`
+
+	res, err := r.pool.Exec(ctx, query, id, userID)
+	if err != nil {
+		return fmt.Errorf("error deleting transaction: %w", err)
+	}
+
+	if res.RowsAffected() == 0 {
+		return ErrTransactionNotFound
+	}
+
+	return nil
+}

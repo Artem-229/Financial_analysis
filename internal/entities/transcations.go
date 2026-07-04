@@ -3,8 +3,9 @@ package entities
 import "github.com/google/uuid"
 
 type Transaction struct {
-	id    uuid.UUID
-	item  string
-	price int
-	class string
+	ID     uuid.UUID
+	UserID uuid.UUID
+	Item   string
+	Price  int
+	Class  string
 }

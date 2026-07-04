@@ -4,17 +4,20 @@ CREATE TABLE users
 (
     id            UUID PRIMARY KEY,
     name          TEXT NOT NULL,
-    login         TEXT NOT NULL,
+    login         TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL
 );
 
 CREATE TABLE transactions
 (
-    id    UUID PRIMARY KEY,
-    item  TEXT    NOT NULL,
-    price INTEGER NOT NULL,
-    class TEXT
+    id      UUID PRIMARY KEY,
+    user_id UUID    NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    item    TEXT    NOT NULL,
+    price   INTEGER NOT NULL,
+    class   TEXT
 );
+
+CREATE INDEX transactions_user_id_idx ON transactions (user_id);
 
 -- +goose StatementEnd
 

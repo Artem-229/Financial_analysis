@@ -9,12 +9,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type Usecases interface {
+type UserUsecases interface {
 	CreateUser(ctx context.Context, user *entities.User) error
 	LoginUser(ctx context.Context, login string, password string) (string, error)
 }
 
-func Registration(usecases Usecases) func(c *gin.Context) {
+func Registration(usecases UserUsecases) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var req *dto.RegistrationRequest
 
@@ -36,7 +36,7 @@ func Registration(usecases Usecases) func(c *gin.Context) {
 	}
 }
 
-func Login(usecases Usecases) func(c *gin.Context) {
+func Login(usecases UserUsecases) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var req *dto.LoginRequest
 

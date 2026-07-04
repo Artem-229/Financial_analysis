@@ -9,7 +9,8 @@ import (
 )
 
 type Repo struct {
-	userRepo *repository.UserRepo
+	userRepo         *repository.UserRepo
+	transactionsRepo *repository.TransactionsRepo
 }
 
 func NewRepo(ctx context.Context, creds *config.Credentials) (*Repo, error) {
@@ -19,8 +20,10 @@ func NewRepo(ctx context.Context, creds *config.Credentials) (*Repo, error) {
 	}
 
 	userRepo := repository.NewUserRepo(pool)
+	transactionsRepo := repository.NewTransactionsRepo(pool)
 
 	return &Repo{
-		userRepo: userRepo,
+		userRepo:         userRepo,
+		transactionsRepo: transactionsRepo,
 	}, nil
 }

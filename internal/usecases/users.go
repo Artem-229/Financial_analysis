@@ -11,24 +11,24 @@ type UserRepo interface {
 	CreateUser(ctx context.Context, user *entities.User) error
 	GetUserByLoginAndPassword(ctx context.Context, login string) (*entities.User, error)
 }
-type Usecases struct {
+type UserUsecases struct {
 	UserRepo UserRepo
 	Creds    *config.Credentials
 }
 
-type Deps struct {
+type UserDeps struct {
 	UserRepo UserRepo
 	Creds    *config.Credentials
 }
 
-func NewUsecases(deps Deps) *Usecases {
-	return &Usecases{
+func NewUserUsecases(deps UserDeps) *UserUsecases {
+	return &UserUsecases{
 		UserRepo: deps.UserRepo,
 		Creds:    deps.Creds,
 	}
 }
 
-func (u Usecases) CreateUser(ctx context.Context, user *entities.User) error {
+func (u UserUsecases) CreateUser(ctx context.Context, user *entities.User) error {
 	hash, err := HashPassword(user.Password)
 	if err != nil {
 		return fmt.Errorf("could not hash password: %w", err)
@@ -39,7 +39,7 @@ func (u Usecases) CreateUser(ctx context.Context, user *entities.User) error {
 	return u.UserRepo.CreateUser(ctx, user)
 }
 
-func (u Usecases) LoginUser(ctx context.Context, login string, password string) (string, error) {
+func (u UserUsecases) LoginUser(ctx context.Context, login string, password string) (string, error) {
 	rawUser, err := u.UserRepo.GetUserByLoginAndPassword(ctx, login)
 	if err != nil {
 		return "", fmt.Errorf("could not get user: %w", err)

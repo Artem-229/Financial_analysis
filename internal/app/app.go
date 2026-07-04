@@ -28,8 +28,10 @@ func New(ctx context.Context, conf *config.Config, creds *config.Credentials) *A
 	}
 
 	server := rest.NewServer(&rest.ServerDeps{
-		Config:   conf,
-		Usecases: usecases.User,
+		Config:       conf,
+		Creds:        creds,
+		Usecases:     usecases.User,
+		Transactions: usecases.Transactions,
 	})
 
 	return &App{
