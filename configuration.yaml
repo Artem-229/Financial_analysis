@@ -1,2 +1,12 @@
 Server:
   Port: localhost:8080
+
+Kafka:
+  brokers:
+    - localhost:9092
+  UpstreamTopic: transactions-upstream
+  HandleTopic: transactions-handle
+
+Cron:
+  Processor:
+    Spec: "*/15 * * * * *"

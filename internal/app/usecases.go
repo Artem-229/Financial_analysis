@@ -11,13 +11,14 @@ type Usecases struct {
 	Transactions *usecases.TransactionsUsecases
 }
 
-func NewUsecases(ctx context.Context, repo *Repo, creds *config.Credentials) (*Usecases, error) {
+func NewUsecases(ctx context.Context, repo *Repo, kafka *Kafka, creds *config.Credentials) (*Usecases, error) {
 	userUsecase := usecases.NewUserUsecases(usecases.UserDeps{
 		UserRepo: repo.userRepo,
 		Creds:    creds,
 	})
 	transcationsUsecases := usecases.NewTranscationsUsecases(usecases.TransactionsDeps{
-		Repo: repo.transactionsRepo,
+		Repo:        repo.transactionsRepo,
+		KafkaWriter: kafka.Producer,
 	})
 
 	return &Usecases{

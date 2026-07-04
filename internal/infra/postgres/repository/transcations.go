@@ -6,6 +6,7 @@ import (
 	"financial_assistant/internal/entities"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -24,8 +25,8 @@ func NewTransactionsRepo(pool *pgxpool.Pool) *TransactionsRepo {
 
 func (r TransactionsRepo) Upsert(ctx context.Context, transaction *entities.Transaction) error {
 	query := `
-		INSERT INTO transactions (id, user_id, item, price, class)
-		VALUES ($1, $2, $3, $4, $5)
+		INSERT INTO transactions (id, user_id, item, price, class, status, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6, NOW())
 		ON CONFLICT (id) DO UPDATE SET
 			item = EXCLUDED.item,
 			price = EXCLUDED.price,
@@ -33,7 +34,7 @@ func (r TransactionsRepo) Upsert(ctx context.Context, transaction *entities.Tran
 		WHERE transactions.user_id = EXCLUDED.user_id
 	`
 
-	res, err := r.pool.Exec(ctx, query, transaction.ID, transaction.UserID, transaction.Item, transaction.Price, transaction.Class)
+	res, err := r.pool.Exec(ctx, query, transaction.ID, transaction.UserID, transaction.Item, transaction.Price, transaction.Class, entities.TransactionStatusPending)
 	if err != nil {
 		return fmt.Errorf("error upserting transaction: %w", err)
 	}
@@ -107,6 +108,59 @@ func (r TransactionsRepo) Delete(ctx context.Context, id string, userID string) 
 
 	if res.RowsAffected() == 0 {
 		return ErrTransactionNotFound
+	}
+
+	return nil
+}
+
+func (r *TransactionsRepo) GetPendingTransactions(ctx context.Context) ([]entities.Transaction, error) {
+	query := `
+		UPDATE transactions
+		SET status = $1
+		WHERE status = $2
+		RETURNING id, user_id, item, price, class
+	`
+
+	rows, err := r.pool.Query(ctx, query, string(entities.TransactionStatusProcessing), string(entities.TransactionStatusPending))
+	if err != nil {
+		return nil, fmt.Errorf("error getting pending transactions: %w", err)
+	}
+	defer rows.Close()
+
+	var result []entities.Transaction
+	for rows.Next() {
+		var transaction entities.Transaction
+		if err := rows.Scan(&transaction.ID, &transaction.UserID, &transaction.Item, &transaction.Price, &transaction.Class); err != nil {
+			return nil, fmt.Errorf("error scanning pending transactions: %w", err)
+		}
+		result = append(result, transaction)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating pending transactions: %w", err)
+	}
+
+	return result, nil
+}
+
+func (r *TransactionsRepo) MarkTransactionsProcessed(ctx context.Context, ids []uuid.UUID, success bool) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	status := entities.TransactionStatusPending
+	if success {
+		status = entities.TransactionStatusComplete
+	}
+
+	idStrings := make([]string, len(ids))
+	for i, id := range ids {
+		idStrings[i] = id.String()
+	}
+
+	query := `UPDATE transactions SET status = $1 WHERE id = ANY($2::uuid[])`
+	if _, err := r.pool.Exec(ctx, query, string(status), idStrings); err != nil {
+		return fmt.Errorf("error updating transactions status: %w", err)
 	}
 
 	return nil
