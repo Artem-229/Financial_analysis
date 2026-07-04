@@ -1,0 +1,31 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-2);
+}
+
+.error {
+  background: color-mix(in srgb, var(--danger) 14%, var(--bg-elevated));
+  border: 1px solid color-mix(in srgb, var(--danger) 40%, transparent);
+  color: var(--danger);
+  font-size: 13px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+}
+
+.footer {
+  margin-top: var(--space-5);
+  font-size: 14px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.link {
+  color: var(--accent-strong);
+  font-weight: 500;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
