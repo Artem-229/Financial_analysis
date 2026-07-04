@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func convertDTOToEntity(req *dto.User) *entities.User {
+func convertRegistrationRequestDTOToEntity(req *dto.RegistrationRequest) *entities.User {
 	rawID, err := uuid.NewUUID()
 	if err != nil {
 		return &entities.User{}

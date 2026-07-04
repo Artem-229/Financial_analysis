@@ -8,10 +8,15 @@ import (
 
 type Credentials struct {
 	Postgres *Postgres `mapstructure:"Postgres"`
+	JWT      *JWT      `mapstructure:"JWT"`
 }
 
 type Postgres struct {
-	Connstr string `mapstructure:"Connstr"`
+	Connstr string `mapstructure:"Connstring"`
+}
+
+type JWT struct {
+	Secret string `mapstructure:"Secret"`
 }
 
 func ReadCredentials() (*Credentials, error) {

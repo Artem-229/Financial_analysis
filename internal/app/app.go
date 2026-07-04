@@ -22,7 +22,7 @@ func New(ctx context.Context, conf *config.Config, creds *config.Credentials) *A
 		log.Fatalf("error connecting to postgres: %v", err)
 	}
 
-	usecases, err := NewUsecases(ctx, repo)
+	usecases, err := NewUsecases(ctx, repo, creds)
 	if err != nil {
 		log.Fatalf("error connecting to postgres: %v", err)
 	}

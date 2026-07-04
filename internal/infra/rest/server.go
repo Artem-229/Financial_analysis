@@ -37,6 +37,7 @@ func (s *Server) Start() error {
 
 	s.Engine.GET("/health", handlers.HealthHandler)
 	s.Engine.POST("/registration", handlers.Registration(s.Usecases))
+	s.Engine.POST("/login", handlers.Login(s.Usecases))
 
 	if err := s.Engine.Run(s.Config.Server.Port); err != nil {
 		return fmt.Errorf("failed to start server: %w", err)

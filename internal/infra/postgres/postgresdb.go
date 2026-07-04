@@ -21,7 +21,7 @@ func New(ctx context.Context, creds *config.Credentials) (*pgxpool.Pool, error) 
 	if err := goose.SetDialect("postgres"); err != nil {
 		return nil, fmt.Errorf("error setting postgres dialect: %w", err)
 	}
-	if err := goose.Up(db, "/migrations"); err != nil {
+	if err := goose.Up(db, "migrations"); err != nil {
 		return nil, fmt.Errorf("error upgrading migrations: %w", err)
 	}
 

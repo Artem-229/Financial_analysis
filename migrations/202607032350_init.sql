@@ -2,10 +2,10 @@
 -- +goose StatementBegin
 CREATE TABLE users
 (
-    id       UUID PRIMARY KEY,
-    name     TEXT NOT NULL,
-    login    TEXT NOT NULL,
-    password TEXT NOT NULL
+    id            UUID PRIMARY KEY,
+    name          TEXT NOT NULL,
+    login         TEXT NOT NULL,
+    password_hash TEXT NOT NULL
 );
 
 CREATE TABLE transactions
@@ -15,6 +15,7 @@ CREATE TABLE transactions
     price INTEGER NOT NULL,
     class TEXT
 );
+
 -- +goose StatementEnd
 
 -- +goose down
