@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -17,9 +18,12 @@ type Server struct {
 }
 
 type Kafka struct {
-	Brokers       []string `mapstructure:"brokers"`
-	UpstreamTopic string   `mapstructure:"UpstreamTopic"`
-	HandleTopic   string   `mapstructure:"HandleTopic"`
+	Brokers         []string      `mapstructure:"brokers"`
+	UpstreamTopic   string        `mapstructure:"UpstreamTopic"`
+	HandleTopic     string        `mapstructure:"HandleTopic"`
+	ConsumerGroupID string        `mapstructure:"ConsumerGroupID"`
+	BatchSize       int           `mapstructure:"BatchSize"`
+	MaxWait         time.Duration `mapstructure:"MaxWait"`
 }
 
 type Cron struct {

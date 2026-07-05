@@ -12,7 +12,7 @@ type Usecases struct {
 	Outcomes     *usecases.OutcomesUsecases
 }
 
-func NewUsecases(ctx context.Context, repo *Repo, kafka *Kafka, creds *config.Credentials) (*Usecases, error) {
+func NewUsecases(ctx context.Context, repo *Repo, kafka *Kafka, conf *config.Config, creds *config.Credentials) (*Usecases, error) {
 	userUsecase := usecases.NewUserUsecases(usecases.UserDeps{
 		UserRepo: repo.userRepo,
 		Creds:    creds,
@@ -26,6 +26,8 @@ func NewUsecases(ctx context.Context, repo *Repo, kafka *Kafka, creds *config.Cr
 	outcomesUsecases := usecases.NewOutcomesUsecases(usecases.OutcomesUsecasesDeps{
 		Repo:        repo.outcomesRepo,
 		KafkaReader: kafka.Consumer,
+		BatchSize:   conf.Kafka.BatchSize,
+		MaxWait:     conf.Kafka.MaxWait,
 	})
 
 	return &Usecases{

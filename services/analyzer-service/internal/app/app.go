@@ -8,26 +8,30 @@ import (
 )
 
 type App struct {
+	ctx      context.Context
 	usecases *Usecases
 	kafka    *Kafka
-	logger   slog.Logger
 }
 
 func New(ctx context.Context, conf *config.Config) *App {
 	kafka := NewKafka(conf)
 
-	usecases, err := NewUsecases(ctx, kafka)
+	usecases, err := NewUsecases(ctx, kafka, conf)
 	if err != nil {
-		log.Fatalf("error connecting to postgres: %v", err)
+		log.Fatalf("error initializing usecases: %v", err)
 	}
 
+	go usecases.Analyzer.Run(ctx)
+
 	return &App{
+		ctx:      ctx,
 		usecases: usecases,
 		kafka:    kafka,
-		logger:   slog.Logger{},
 	}
 }
 
 func (app *App) Start() error {
-	return nil
+	<-app.ctx.Done()
+	slog.Info("shutting down analyzer-service")
+	return app.kafka.Close()
 }

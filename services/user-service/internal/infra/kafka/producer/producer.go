@@ -31,3 +31,7 @@ func (p *Producer) Produce(ctx context.Context, events [][]byte) error {
 
 	return p.writer.WriteMessages(ctx, messages...)
 }
+
+func (p *Producer) Close() error {
+	return p.writer.Close()
+}

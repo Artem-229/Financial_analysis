@@ -27,7 +27,7 @@ func New(ctx context.Context, conf *config.Config, creds *config.Credentials) *A
 		log.Fatalf("error connecting to postgres: %v", err)
 	}
 
-	usecases, err := NewUsecases(ctx, repo, kafka, creds)
+	usecases, err := NewUsecases(ctx, repo, kafka, conf, creds)
 	if err != nil {
 		log.Fatalf("error connecting to postgres: %v", err)
 	}
@@ -42,9 +42,7 @@ func New(ctx context.Context, conf *config.Config, creds *config.Credentials) *A
 	}
 	scheduler.Start()
 
-	go func() {
-		usecases.Outcomes.Consume(ctx)
-	}()
+	go usecases.Outcomes.Run(ctx)
 
 	server := rest.NewServer(&rest.ServerDeps{
 		Config:       conf,

@@ -3,3 +3,6 @@ Kafka:
     - localhost:9092
   UpstreamTopic: transactions-upstream
   HandleTopic: transactions-handle
+  ConsumerGroupID: analyzer-service
+  BatchSize: 10
+  MaxWait: 5s

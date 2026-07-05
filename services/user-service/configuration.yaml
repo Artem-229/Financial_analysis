@@ -6,6 +6,9 @@ Kafka:
     - localhost:9092
   UpstreamTopic: transactions-upstream
   HandleTopic: transactions-handle
+  ConsumerGroupID: user-service
+  BatchSize: 10
+  MaxWait: 5s
 
 Cron:
   Processor:
