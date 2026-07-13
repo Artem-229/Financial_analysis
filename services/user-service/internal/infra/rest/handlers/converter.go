@@ -33,6 +33,7 @@ func convertTransactionDTOToEntity(req *dto2.CreateTransactionRequest, userID uu
 		Price:  req.Price,
 		Item:   req.Item,
 		Class:  req.Class,
+		Note:   req.Note,
 	}
 }
 
@@ -43,6 +44,7 @@ func convertUpdateTransactionDTOToEntity(req *dto2.UpdateTransactionRequest, id 
 		Price:  req.Price,
 		Item:   req.Item,
 		Class:  req.Class,
+		Note:   req.Note,
 	}
 }
 
@@ -52,5 +54,6 @@ func convertTransactionEntityToDTO(transaction *entities2.Transaction) *dto2.Tra
 		Item:  transaction.Item,
 		Price: transaction.Price,
 		Class: transaction.Class,
+		Note:  transaction.Note,
 	}
 }

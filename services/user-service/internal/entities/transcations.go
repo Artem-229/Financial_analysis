@@ -16,5 +16,6 @@ type Transaction struct {
 	Item   string
 	Price  int
 	Class  string
+	Note   string
 	Status string
 }

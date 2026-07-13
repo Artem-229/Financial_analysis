@@ -25,16 +25,17 @@ func NewTransactionsRepo(pool *pgxpool.Pool) *TransactionsRepo {
 
 func (r TransactionsRepo) Upsert(ctx context.Context, transaction *entities.Transaction) error {
 	query := `
-		INSERT INTO transactions (id, user_id, item, price, class, status, created_at)
-		VALUES ($1, $2, $3, $4, $5, $6, NOW())
+		INSERT INTO transactions (id, user_id, item, price, class, note, status, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
 		ON CONFLICT (id) DO UPDATE SET
 			item = EXCLUDED.item,
 			price = EXCLUDED.price,
-			class = EXCLUDED.class
+			class = EXCLUDED.class,
+			note = EXCLUDED.note
 		WHERE transactions.user_id = EXCLUDED.user_id
 	`
 
-	res, err := r.pool.Exec(ctx, query, transaction.ID, transaction.UserID, transaction.Item, transaction.Price, transaction.Class, entities.TransactionStatusPending)
+	res, err := r.pool.Exec(ctx, query, transaction.ID, transaction.UserID, transaction.Item, transaction.Price, transaction.Class, transaction.Note, entities.TransactionStatusPending)
 	if err != nil {
 		return fmt.Errorf("error upserting transaction: %w", err)
 	}
@@ -47,7 +48,7 @@ func (r TransactionsRepo) Upsert(ctx context.Context, transaction *entities.Tran
 }
 
 func (r TransactionsRepo) GetByID(ctx context.Context, id string, userID string) (*entities.Transaction, error) {
-	query := `SELECT id, user_id, item, price, class FROM transactions WHERE id = $1 AND user_id = $2`
+	query := `SELECT id, user_id, item, price, class, note FROM transactions WHERE id = $1 AND user_id = $2`
 
 	var transaction entities.Transaction
 	err := r.pool.QueryRow(ctx, query, id, userID).Scan(
@@ -56,6 +57,7 @@ func (r TransactionsRepo) GetByID(ctx context.Context, id string, userID string)
 		&transaction.Item,
 		&transaction.Price,
 		&transaction.Class,
+		&transaction.Note,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -68,7 +70,7 @@ func (r TransactionsRepo) GetByID(ctx context.Context, id string, userID string)
 }
 
 func (r TransactionsRepo) List(ctx context.Context, userID string) ([]entities.Transaction, error) {
-	query := `SELECT id, user_id, item, price, class FROM transactions WHERE user_id = $1`
+	query := `SELECT id, user_id, item, price, class, note FROM transactions WHERE user_id = $1`
 
 	rows, err := r.pool.Query(ctx, query, userID)
 	if err != nil {
@@ -85,6 +87,7 @@ func (r TransactionsRepo) List(ctx context.Context, userID string) ([]entities.T
 			&transaction.Item,
 			&transaction.Price,
 			&transaction.Class,
+			&transaction.Note,
 		); err != nil {
 			return nil, fmt.Errorf("error scanning transaction: %w", err)
 		}
@@ -118,7 +121,7 @@ func (r *TransactionsRepo) GetPendingTransactions(ctx context.Context) ([]entiti
 		UPDATE transactions
 		SET status = $1
 		WHERE status = $2
-		RETURNING id, user_id, item, price, class
+		RETURNING id, user_id, item, price, class, note
 	`
 
 	rows, err := r.pool.Query(ctx, query, string(entities.TransactionStatusProcessing), string(entities.TransactionStatusPending))
@@ -130,7 +133,7 @@ func (r *TransactionsRepo) GetPendingTransactions(ctx context.Context) ([]entiti
 	var result []entities.Transaction
 	for rows.Next() {
 		var transaction entities.Transaction
-		if err := rows.Scan(&transaction.ID, &transaction.UserID, &transaction.Item, &transaction.Price, &transaction.Class); err != nil {
+		if err := rows.Scan(&transaction.ID, &transaction.UserID, &transaction.Item, &transaction.Price, &transaction.Class, &transaction.Note); err != nil {
 			return nil, fmt.Errorf("error scanning pending transactions: %w", err)
 		}
 		result = append(result, transaction)

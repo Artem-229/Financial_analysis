@@ -4,12 +4,14 @@ type CreateTransactionRequest struct {
 	Item  string `json:"item"`
 	Price int    `json:"price"`
 	Class string `json:"class"`
+	Note  string `json:"note"`
 }
 
 type UpdateTransactionRequest struct {
 	Item  string `json:"item"`
 	Price int    `json:"price"`
 	Class string `json:"class"`
+	Note  string `json:"note"`
 }
 
 type TransactionResponse struct {
@@ -17,4 +19,5 @@ type TransactionResponse struct {
 	Item  string `json:"item"`
 	Price int    `json:"price"`
 	Class string `json:"class"`
+	Note  string `json:"note"`
 }

@@ -5,6 +5,7 @@ import (
 	"financial_assistant/services/user-service/internal/entities"
 	"fmt"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -21,9 +22,18 @@ func NewOutcomesRepo(pool *pgxpool.Pool) *OutcomesRepo {
 func (repo *OutcomesRepo) CreateOutcomes(ctx context.Context, outcomes []entities.Outcome) error {
 	query := `INSERT INTO outcomes (id, user_id, analysis) VALUES ($1, $2, $3)`
 
-	_, err := repo.pool.Exec(ctx, query, outcomes)
-	if err != nil {
-		return fmt.Errorf("failed to insert outcomes: %w", err)
+	batch := &pgx.Batch{}
+	for _, outcome := range outcomes {
+		batch.Queue(query, outcome.ID, outcome.UserID, outcome.Analysis)
+	}
+
+	results := repo.pool.SendBatch(ctx, batch)
+	defer results.Close()
+
+	for range outcomes {
+		if _, err := results.Exec(); err != nil {
+			return fmt.Errorf("failed to insert outcomes: %w", err)
+		}
 	}
 
 	return nil

@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"financial_assistant/services/analyzer-service/internal/config"
+	"financial_assistant/services/analyzer-service/internal/infra/llm"
 	"financial_assistant/services/analyzer-service/internal/usecases"
 )
 
@@ -14,7 +15,7 @@ func NewUsecases(ctx context.Context, kafka *Kafka, conf *config.Config) (*Useca
 	analyzerUsecases := usecases.NewAnalyzerUsecases(usecases.AnalyzerUsecasesDeps{
 		Consumer:  kafka.Consumer,
 		Producer:  kafka.Producer,
-		LLM:       usecases.NewMockLLM(),
+		LLM:       llm.NewLLM(conf),
 		BatchSize: conf.Kafka.BatchSize,
 		MaxWait:   conf.Kafka.MaxWait,
 	})
